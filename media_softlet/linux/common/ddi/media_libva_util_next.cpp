@@ -196,7 +196,9 @@ VAStatus MediaLibvaUtilNext::SetDefaultTileFormat(
             status = VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
 
-    if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER & surfaceUsageHint)
+    // VPP output is commonly fed to the encoder directly, which reads the input
+    // with the coded size aligned to 16, so align it like an encoder surface.
+    if ((VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER | VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE) & surfaceUsageHint)
     {
         params.alignedWidth  = MOS_ALIGN_CEIL(params.alignedWidth, 16);
         params.alignedHeight = MOS_ALIGN_CEIL(params.alignedHeight, 16);
