@@ -393,6 +393,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     m_Params.input.rcMaxSrc         = surfInput->rcMaxSrc;
     m_Params.input.dwWidth          = surfInput->dwWidth;
     m_Params.input.dwHeight         = surfInput->dwHeight;
+    m_Params.input.dwPitch          = surfInput->dwPitch;
     m_Params.formatOutput           = surfOutput->Format;
     m_Params.csc.colorSpaceOutput   = surfOutput->ColorSpace;
     // Will be assigned during PolicySfcColorFillHandler::UpdateFeaturePipe.
@@ -487,6 +488,7 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
     m_Params.input.rcMaxSrc         = params.input.rcSrc;
     m_Params.input.dwWidth          = params.input.surface->dwWidth;
     m_Params.input.dwHeight         = params.input.surface->dwHeight;
+    m_Params.input.dwPitch          = params.input.surface->dwPitch;
     m_Params.formatOutput           = params.output.surface->Format;
     m_Params.csc.colorSpaceOutput   = params.output.colorSpace;
     m_Params.pColorFillParams       = nullptr;
@@ -550,6 +552,7 @@ MOS_STATUS SwFilterScaling::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOut
 
     m_Params.input.dwWidth              = surfInput->osSurface->dwWidth;
     m_Params.input.dwHeight             = surfInput->osSurface->dwHeight;
+    m_Params.input.dwPitch              = surfInput->osSurface->dwPitch;
     m_Params.input.rcSrc                = surfInput->rcSrc;
     m_Params.input.rcDst                = surfInput->rcDst;
     m_Params.input.rcMaxSrc             = surfInput->rcMaxSrc;
