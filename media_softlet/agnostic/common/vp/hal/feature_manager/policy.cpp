@@ -1531,8 +1531,14 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         dwDstMinHeight = dwSfcOutputMinHeight;
     }
 
+    // Vebox requires 64 bytes aligned pitch for linear surfaces (see MHW_VEBOX_LINEAR_PITCH),
+    // which imported surfaces (e.g. dma-buf) may not have. Fall back to render for them.
+    bool isInputPitchSupportedByVebox = scalingParams->input.tileMode != MOS_TILE_LINEAR_GMM ||
+                                        MOS_IS_ALIGNED(scalingParams->input.dwPitch, MHW_VEBOX_LINEAR_PITCH);
+
     if (OUT_OF_BOUNDS(dwSurfaceWidth, veboxMinWidth, veboxMaxWidth) ||
-        OUT_OF_BOUNDS(dwSurfaceHeight, veboxMinHeight, veboxMaxHeight))
+        OUT_OF_BOUNDS(dwSurfaceHeight, veboxMinHeight, veboxMaxHeight) ||
+        !isInputPitchSupportedByVebox)
     {
         // For non-scaling cases with vebox unsupported format, will force to use fc.
         scalingEngine->bEnabled          = isScalingNeeded;
@@ -1545,8 +1551,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         scalingEngine->forceEnableForFc  = 1;
         scalingEngine->veboxNotSupported = 1;
 
-        VP_PUBLIC_NORMALMESSAGE("VPOutputPipe will be render(0) since the surface resolution (%d x %d) is not supported by vebox (%d x %d) ~ (%d x %d).",
-            dwSurfaceWidth, dwSurfaceHeight, veboxMinWidth, veboxMinHeight, veboxMaxWidth, veboxMaxHeight);
+        if (!isInputPitchSupportedByVebox)
+        {
+            VP_PUBLIC_NORMALMESSAGE("VPOutputPipe will be render(0) since the linear surface pitch %d is not %d bytes aligned, which is not supported by vebox.",
+                scalingParams->input.dwPitch, MHW_VEBOX_LINEAR_PITCH);
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("VPOutputPipe will be render(0) since the surface resolution (%d x %d) is not supported by vebox (%d x %d) ~ (%d x %d).",
+                dwSurfaceWidth, dwSurfaceHeight, veboxMinWidth, veboxMinHeight, veboxMaxWidth, veboxMaxHeight);
+        }
 
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
